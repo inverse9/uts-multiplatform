@@ -1,117 +1,121 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final List<Map<String, String>> data = [
-    {"desc": "ahsdbjhasdbnsand", "img": "https://picsum.photos/id/1"},
-    {"desc": "ahsdbjhasdbnsand2", "img": "https://picsum.photos/id/2"},
-    {"desc": "ahsdbjhasdbnsand3", "img": "https://picsum.photos/id/3"},
-  ];
-  MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: Scaffold(
-        body: Navigator(
-          onGenerateRoute: (settings) {
-            return MaterialPageRoute(
-              builder: (context) => Grid(data: data),
-            );
-          },
+    return ChangeNotifierProvider(
+      create: (context) => WishlistNotifier(),
+      child: MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
         ),
+        home: GridPage(),
       ),
     );
   }
 }
 
-class Grid extends StatelessWidget {
-  final List<Map<String, String>> data;
-  const Grid({Key? key, required List<Map<String, String>> this.data});
+class GridPage extends StatelessWidget {
+  final List<Map<String, String>> data = [
+    {"desc": "ahsdbjhasdbnsand", "img": "https://picsum.photos/id/0/200/200"},
+    {"desc": "ahsdbjhasdbnsand2", "img": "https://picsum.photos/id/1/200/200"},
+    {"desc": "ahsdbjhasdbnsand3", "img": "https://picsum.photos/id/2/200/200"},
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 4.0,
-        crossAxisSpacing: 4.0,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Test'),
       ),
-      itemCount: 3,
-      itemBuilder: (_, i) {
-        return GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => DetailPage(
-                  data: data[i],
+      body: GridView.builder(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 4.0,
+          mainAxisSpacing: 4.0,
+        ),
+        itemCount: data.length,
+        itemBuilder: (context, index) {
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DetailPage(
+                    data: data[index],
+                    index: index,
+                  ),
                 ),
-              ),
-            );
-          },
-          child: Stack(children: [
-            Image.network(
-              data[i]["img"]! + "/200/200",
+              );
+            },
+            child: Image.network(
+              data[index]["img"]!,
+              fit: BoxFit.cover,
             ),
-            Positioned(
-                child: WishlistButton(
-              isWished: false,
-              onTap: () {
-                print('yes');
-              },
-            ))
-          ]),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
 
 class DetailPage extends StatelessWidget {
   final Map<String, String> data;
+  final int index;
 
-  const DetailPage({Key? key, required this.data}) : super(key: key);
+  DetailPage({required this.data, required this.index});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('detail'),
+        title: Text('Detail'),
       ),
       body: Column(
         children: [
-          Image.network(data["img"]! + "/500/500"),
+          Image.network(
+            data["img"]!,
+            fit: BoxFit.cover,
+          ),
           Text(data["desc"]!),
+          Consumer<WishlistNotifier>(
+            builder: (context, wishlist, _) => IconButton(
+              icon: Icon(
+                wishlist.wishlist.contains(index)
+                    ? Icons.favorite
+                    : Icons.favorite_border,
+                color: wishlist.wishlist.contains(index)
+                    ? Colors.red
+                    : Colors.grey,
+              ),
+              onPressed: () {
+                wishlist.toggleWishlist(index);
+              },
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-class WishlistButton extends StatelessWidget {
-  final bool isWished;
-  final VoidCallback onTap;
+class WishlistNotifier extends ChangeNotifier {
+  Set<int> _wishlist = {};
 
-  const WishlistButton({Key? key, required this.isWished, required this.onTap})
-      : super(key: key);
+  Set<int> get wishlist => _wishlist;
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Icon(
-        isWished ? Icons.favorite : Icons.favorite_border,
-        color: isWished ? Colors.red : Colors.grey,
-      ),
-    );
+  void toggleWishlist(int index) {
+    if (_wishlist.contains(index)) {
+      _wishlist.remove(index);
+    } else {
+      _wishlist.add(index);
+    }
+    notifyListeners();
   }
 }
