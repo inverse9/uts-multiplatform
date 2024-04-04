@@ -119,7 +119,7 @@ class GridPage extends StatelessWidget {
     },
     {
       "id": "6",
-      "title": "THE BIRTH OF KITARO : MYSTERY OF GEGEGE",
+      "title": "THE BIRTH OF KITARO",
       "desc":
           "Mizuki (pengisi suara Hidenobu Kuici) seorang karyawan yang juga mantan tentara, memiliki misi khusus ke desa Yagura, karena banyaknya warga yang dibunuh secara tidak wajar. Bersama Medame-Oyaji (Masako Nozawa), ayah Kitaro, Mizuki berupaya memecahkan misteri di desa yang dipimpin klan Ryuga, yang memiliki pengaruh politik dan bisnis di situ.",
       "img": "PF-The-Birth-Of-Kitaro-Mistery-Of-Gegege-350x520.jpg",
@@ -131,6 +131,10 @@ class GridPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Size screenSize = MediaQuery.of(context).size;
+    double screenWidth = screenSize.width;
+    int crossAxisCount = _getScreenSizeCategory(screenWidth);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
@@ -139,7 +143,7 @@ class GridPage extends StatelessWidget {
       ),
       body: GridView.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
+          crossAxisCount: crossAxisCount,
           crossAxisSpacing: 4.0,
           mainAxisSpacing: 4.0,
         ),
@@ -165,6 +169,18 @@ class GridPage extends StatelessWidget {
         },
       ),
     );
+  }
+
+  int _getScreenSizeCategory(double screenWidth) {
+    if (screenWidth < 600) {
+      return 2; // For screen widths less than 600
+    } else if (screenWidth >= 600 && screenWidth < 960) {
+      return 3; // For screen widths between 600 and 960
+    } else if (screenWidth >= 960 && screenWidth < 1280) {
+      return 4; // For screen widths between 960 and 1280
+    } else {
+      return 2;
+    }
   }
 }
 
@@ -273,6 +289,9 @@ class WishlistPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Size screenSize = MediaQuery.of(context).size;
+    double screenWidth = screenSize.width;
+    int crossAxisCount = _getScreenSizeCategory(screenWidth);
     var appState = context.watch<WishlistNotifier>();
     if (appState._wishlist.isEmpty) {
       return Center(
@@ -281,7 +300,7 @@ class WishlistPage extends StatelessWidget {
     }
     return GridView.builder(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
+        crossAxisCount: crossAxisCount,
         crossAxisSpacing: 4.0,
         mainAxisSpacing: 4.0,
       ),
@@ -300,17 +319,31 @@ class WishlistPage extends StatelessWidget {
               ),
             );
           },
-          child: Column(
-            children: [
-              Image.asset(
-                "../assets/img/${film["img"]!}",
-                fit: BoxFit.cover,
-              ),
-              Text(film["title"]!),
-            ],
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Image.asset(
+                  "../assets/img/${film["img"]!}",
+                  fit: BoxFit.cover,
+                ),
+                Text(film["title"]!),
+              ],
+            ),
           ),
         );
       },
     );
+  }
+
+  int _getScreenSizeCategory(double screenWidth) {
+    if (screenWidth < 600) {
+      return 2; // For screen widths less than 600
+    } else if (screenWidth >= 600 && screenWidth < 960) {
+      return 3; // For screen widths between 600 and 960
+    } else if (screenWidth >= 960 && screenWidth < 1280) {
+      return 4; // For screen widths between 960 and 1280
+    } else {
+      return 2;
+    }
   }
 }
