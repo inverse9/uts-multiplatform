@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:io';
 
 void main() {
   runApp(MyApp());
@@ -12,7 +11,7 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => WishlistNotifier(),
       child: MaterialApp(
-        title: 'Flutter Demo',
+        title: 'Flutter UTS',
         theme: ThemeData(
           useMaterial3: true,
           colorSchemeSeed: Colors.brown,
@@ -32,35 +31,73 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   int currentPageIndex = 0;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: NavigationBar(
-        onDestinationSelected: (int index) {
-          setState(() {
-            currentPageIndex = index;
-          });
-        },
-        indicatorColor: Theme.of(context).colorScheme.primary,
-        selectedIndex: currentPageIndex,
-        destinations: [
-          NavigationDestination(
-              selectedIcon: Icon(
-                Icons.home,
-                color: Theme.of(context).colorScheme.onPrimary,
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              child: Text(
+                'Menu',
+                style:
+                    TextStyle(color: Theme.of(context).colorScheme.onPrimary),
               ),
-              icon: Icon(Icons.home_outlined),
-              label: "Home"),
-          NavigationDestination(
-              selectedIcon: Icon(
-                Icons.favorite,
-                color: Theme.of(context).colorScheme.onPrimary,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
               ),
-              icon: Icon(Icons.favorite_border),
-              label: "Wishlist"),
-        ],
+            ),
+            ListTile(
+              title: Text('Home'),
+              onTap: () {
+                setState(() {
+                  currentPageIndex = 0;
+                });
+                Navigator.pop(context); // Close the drawer
+              },
+            ),
+            ListTile(
+              title: Text('Wishlist'),
+              onTap: () {
+                setState(() {
+                  currentPageIndex = 1;
+                });
+                Navigator.pop(context); // Close the drawer
+              },
+            ),
+          ],
+        ),
       ),
       body: [GridPage(), WishlistPage()][currentPageIndex],
+      bottomNavigationBar: MediaQuery.of(context).size.width > 600
+          ? null
+          : NavigationBar(
+              onDestinationSelected: (int index) {
+                setState(() {
+                  currentPageIndex = index;
+                });
+              },
+              indicatorColor: Theme.of(context).colorScheme.primary,
+              selectedIndex: currentPageIndex,
+              destinations: [
+                NavigationDestination(
+                    selectedIcon: Icon(
+                      Icons.home,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                    icon: Icon(Icons.home_outlined),
+                    label: "Home"),
+                NavigationDestination(
+                    selectedIcon: Icon(
+                      Icons.favorite,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                    icon: Icon(Icons.favorite_border),
+                    label: "Wishlist"),
+              ],
+            ),
     );
   }
 }
@@ -138,8 +175,21 @@ class GridPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
-        title: Text('Film',
-            style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
+        title: Text(
+          'Film',
+          style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+        ),
+        leading: MediaQuery.of(context).size.width < 600
+            ? null
+            : IconButton(
+                icon: Icon(
+                  Icons.menu,
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
+                onPressed: () {
+                  Scaffold.of(context).openDrawer();
+                },
+              ),
       ),
       body: GridView.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -168,6 +218,70 @@ class GridPage extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+
+  int _getScreenSizeCategory(double screenWidth) {
+    if (screenWidth < 600) {
+      return 2; // For screen widths less than 600
+    } else if (screenWidth >= 600 && screenWidth < 960) {
+      return 3; // For screen widths between 600 and 960
+    } else if (screenWidth >= 960 && screenWidth < 1280) {
+      return 4; // For screen widths between 960 and 1280
+    } else {
+      return 2;
+    }
+  }
+}
+
+class WishlistPage extends StatelessWidget {
+  const WishlistPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    Size screenSize = MediaQuery.of(context).size;
+    double screenWidth = screenSize.width;
+    int crossAxisCount = _getScreenSizeCategory(screenWidth);
+    var appState = context.watch<WishlistNotifier>();
+    if (appState._wishlist.isEmpty) {
+      return Center(
+        child: Text('wishlist kosong'),
+      );
+    }
+    return GridView.builder(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        crossAxisSpacing: 4.0,
+        mainAxisSpacing: 4.0,
+      ),
+      itemCount: appState._wishlist.length,
+      itemBuilder: (context, index) {
+        var film = appState._wishlist.toList()[index];
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => DetailPage(
+                  data: film,
+                  index: index,
+                ),
+              ),
+            );
+          },
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Image.asset(
+                  "../assets/img/${film["img"]!}",
+                  fit: BoxFit.cover,
+                ),
+                Text(film["title"]!),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -281,69 +395,5 @@ class WishlistNotifier extends ChangeNotifier {
       _wishlist.add(data);
     }
     notifyListeners();
-  }
-}
-
-class WishlistPage extends StatelessWidget {
-  const WishlistPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    Size screenSize = MediaQuery.of(context).size;
-    double screenWidth = screenSize.width;
-    int crossAxisCount = _getScreenSizeCategory(screenWidth);
-    var appState = context.watch<WishlistNotifier>();
-    if (appState._wishlist.isEmpty) {
-      return Center(
-        child: Text('wishlist kosong'),
-      );
-    }
-    return GridView.builder(
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: crossAxisCount,
-        crossAxisSpacing: 4.0,
-        mainAxisSpacing: 4.0,
-      ),
-      itemCount: appState._wishlist.length,
-      itemBuilder: (context, index) {
-        var film = appState._wishlist.toList()[index];
-        return GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => DetailPage(
-                  data: film,
-                  index: index,
-                ),
-              ),
-            );
-          },
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                Image.asset(
-                  "../assets/img/${film["img"]!}",
-                  fit: BoxFit.cover,
-                ),
-                Text(film["title"]!),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  int _getScreenSizeCategory(double screenWidth) {
-    if (screenWidth < 600) {
-      return 2; // For screen widths less than 600
-    } else if (screenWidth >= 600 && screenWidth < 960) {
-      return 3; // For screen widths between 600 and 960
-    } else if (screenWidth >= 960 && screenWidth < 1280) {
-      return 4; // For screen widths between 960 and 1280
-    } else {
-      return 2;
-    }
   }
 }
