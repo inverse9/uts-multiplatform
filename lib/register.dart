@@ -1,38 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-import 'register.dart';
-import 'home.dart';
-import 'wishlistPage.dart';
-
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => WishlistNotifier(),
-      child: MaterialApp(
-        title: 'Flutter UTS',
-        initialRoute: '/',
-        routes: {
-          '/home': (context) => Home(),
-          '/register': (context) => Register(),
-        },
-        theme: ThemeData(
-          useMaterial3: true,
-          colorSchemeSeed: Colors.brown,
-        ),
-        home: Login(),
-      ),
-    );
-  }
-}
-
-class Login extends StatelessWidget {
-  const Login({super.key});
+class Register extends StatelessWidget {
+  const Register({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +30,7 @@ class Login extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Login',
+                  'Register',
                   style: TextStyle(
                     fontSize: 24.0,
                     fontWeight: FontWeight.bold,
@@ -84,25 +53,30 @@ class Login extends StatelessWidget {
                   ),
                   obscureText: true,
                 ),
+                SizedBox(height: 12.0),
+                TextField(
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: Icon(Icons.email),
+                  ),
+                  obscureText: true,
+                ),
                 SizedBox(height: 24.0),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/home');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                            'Register success, Redirecting to Login Screen..'),
+                        duration: Duration(seconds: 2),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                    Future.delayed(Duration(seconds: 2), () {
+                      Navigator.pushNamed(context, '/');
+                    });
                   },
-                  child: Text('Login'),
-                ),
-                SizedBox(height: 12.0),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pushNamed(context, '/register');
-                  },
-                  child: Text(
-                    'Click here to Register',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Theme.of(context).primaryColor,
-                    ),
-                  ),
+                  child: Text('Register'),
                 ),
               ],
             ),
